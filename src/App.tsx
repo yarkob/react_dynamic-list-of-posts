@@ -10,7 +10,6 @@ import { Loader } from './components/Loader';
 import { User } from './types/User';
 import classNames from 'classnames';
 import { PostDetails } from './components/PostDetails';
-// import { Loader } from './components/Loader';
 
 export enum Error {
   PostLoading = 'PostLoading',
