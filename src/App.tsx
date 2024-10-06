@@ -1,15 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import 'bulma/bulma.sass';
 import '@fortawesome/fontawesome-free/css/all.css';
 import './App.scss';
 
-import classNames from 'classnames';
 import { PostsList } from './components/PostsList';
-import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
+import { Post } from './types/Post';
 import { Loader } from './components/Loader';
+import { User } from './types/User';
+import classNames from 'classnames';
+import { PostDetails } from './components/PostDetails';
+
+export enum Error {
+  PostLoading = 'PostLoading',
+  CommentLoading = 'CommentLoading',
+}
 
 export const App: React.FC = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [error, setError] = useState<Error | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+
   return (
     <main className="section">
       <div className="container">
@@ -17,26 +30,45 @@ export const App: React.FC = () => {
           <div className="tile is-parent">
             <div className="tile is-child box is-success">
               <div className="block">
-                <UserSelector />
+                <UserSelector
+                  setError={setError}
+                  setPosts={setPosts}
+                  setIsUserLoading={setIsUserLoading}
+                  setSelectedUser={setSelectedUser}
+                  setSelectedPost={setSelectedPost}
+                  selectedUser={selectedUser}
+                />
               </div>
 
               <div className="block" data-cy="MainContent">
-                <p data-cy="NoSelectedUser">No user selected</p>
+                {!selectedUser && (
+                  <p data-cy="NoSelectedUser">No user selected</p>
+                )}
 
-                <Loader />
+                {isUserLoading && !error && <Loader />}
 
-                <div
-                  className="notification is-danger"
-                  data-cy="PostsLoadingError"
-                >
-                  Something went wrong!
-                </div>
+                {Error.PostLoading === error && (
+                  <div
+                    className="notification is-danger"
+                    data-cy="PostsLoadingError"
+                  >
+                    Something went wrong!
+                  </div>
+                )}
 
-                <div className="notification is-warning" data-cy="NoPostsYet">
-                  No posts yet
-                </div>
+                {posts.length === 0 && selectedUser && !isUserLoading && (
+                  <div className="notification is-warning" data-cy="NoPostsYet">
+                    No posts yet
+                  </div>
+                )}
 
-                <PostsList />
+                {posts.length > 0 && !isUserLoading && (
+                  <PostsList
+                    setSelectedPost={setSelectedPost}
+                    posts={posts}
+                    selectedPost={selectedPost}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -48,11 +80,19 @@ export const App: React.FC = () => {
               'is-parent',
               'is-8-desktop',
               'Sidebar',
-              'Sidebar--open',
+              {
+                'Sidebar--open': selectedPost,
+              },
             )}
           >
             <div className="tile is-child box is-success ">
-              <PostDetails />
+              {selectedPost && (
+                <PostDetails
+                  selectedPost={selectedPost}
+                  setError={setError}
+                  error={error}
+                />
+              )}
             </div>
           </div>
         </div>
